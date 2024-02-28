@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイク入力のスペクトラム表示</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="spectrogramCanvas" width="800" height="300"></canvas>
+
+    <script>
+        // Web Audio APIのAudioContextを作成
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // マイク入力のためのMediaStreamを取得
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => {
+                // MediaStreamをAudioNodeに接続
+                const sourceNode = audioContext.createMediaStreamSource(stream);
+
+                // 高速フーリエ変換（FFT）のためのAnalyserNodeを作成
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048; // FFTサイズ（2の冪乗）
+
+                // AudioNodeをAnalyserNodeに接続
+                sourceNode.connect(analyser);
+
+                // スペクトラムを描画するCanvasの取得
+                const canvas = document.getElementById('spectrogramCanvas');
+                const canvasContext = canvas.getContext('2d');
+
+                // 描画関数
+                function drawSpectrum() {
+                    // AnalyserNodeから周波数データを取得
+                    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(dataArray);
+
+                    // Canvasをクリア
+                    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // スペクトラムを描画
+                    const barWidth = canvas.width / dataArray.length;
+                    let x = 0;
+
+                    dataArray.forEach((value) => {
+                        const barHeight = (value / 255) * canvas.height;
+                        canvasContext.fillStyle = `rgb(${value}, 50, 50)`;
+                        canvasContext.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                        x += barWidth;
+                    });
+
+                    // アニメーション
+                    requestAnimationFrame(drawSpectrum);
+                }
+
+                // 描画開始
+                drawSpectrum();
+            })
+            .catch((error) => {
+                console.error('マイクへのアクセスに失敗しました:', error);
+            });
+    </script>
+</body>
+</html>
