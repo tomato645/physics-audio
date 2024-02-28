@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>440Hz Sound</title>
+</head>
+<body>
+
+<script>
+  alert(4);
+  // Web Audio APIを使用して440Hzのサウンドを生成・再生
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = context.createOscillator();
+
+  oscillator.type = 'sine';  // サイン波
+  oscillator.frequency.setValueAtTime(440, context.currentTime);  // 周波数設定
+
+  oscillator.connect(context.destination);  // 出力に接続
+  oscillator.start();  // 開始
+
+  // 3秒後に停止（任意で調整可能）
+  oscillator.stop(context.currentTime + 60);
+</script>
+
+</body>
+</html>
